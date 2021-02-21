@@ -72,6 +72,15 @@ class MedianTest < Minitest::Test
     assert_equal expected, User.select(:id).group(:name).median(:visits_count)
   end
 
+  def test_distinct_on
+    skip if mongoid?
+
+    [1, 2, 3, 4, 5, 6].each { |n| User.create!(visits_count: n, name: n < 4 ? "A" : "B") }
+    expected = {"A" => 3, "B" => 6}
+    assert_equal expected, User.select('DISTINCT ON (name) *').order(:name, created_at: :desc).average(:visits_count)
+    assert_equal expected, User.select('DISTINCT ON (name) *').order(:name, created_at: :desc).median(:visits_count)
+  end
+
   def test_order
     skip if mongoid?
 
